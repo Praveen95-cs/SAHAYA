@@ -1,9 +1,11 @@
 """
 Domestic Violence Detection System - Backend API
 FastAPI (Local-first, Cloud-ready)
+Uses Transformer-based Zero-Shot Classification
 """
+# 🔥 FORCE GITHUB UPDATE – DO NOT REMOVE
 
-from fastapi import FastAPI, HTTPException, UploadFile, File
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import List, Dict
@@ -23,35 +25,22 @@ try:
     ESCALATION_MODEL = load_model("models/escalation_lstm_model.h5")
     LSTM_AVAILABLE = True
     print("✅ LSTM escalation model loaded")
-except Exception:
+except Exception as e:
     ESCALATION_MODEL = None
     LSTM_AVAILABLE = False
-    print("⚠️ LSTM model not found, using fallback escalation")
+    print("⚠️ LSTM model disabled:", e)
 
 # -------------------------
-# Speech-to-text
-# -------------------------
-
-from speech import speech_to_text
-
-# -------------------------
-# NLP (Zero-shot for now)
+# ML (Zero-shot Classification)
 # -------------------------
 
 from transformers import pipeline
 
-classifier = None
-
-def get_classifier():
-    global classifier
-    if classifier is None:
-        classifier = pipeline(
-            task="zero-shot-classification",
-            model="facebook/bart-large-mnli",
-            device=-1
-        )
-    return classifier
-
+classifier = pipeline(
+    task="zero-shot-classification",
+    model="valhalla/distilbart-mnli-12-1",  # lighter & Render-safe
+    device=-1  # CPU only
+)
 
 ABUSE_LABELS = [
     "controlling behavior",
@@ -112,9 +101,7 @@ class RiskAnalysis(BaseModel):
 # -------------------------
 
 def classify_message(text: str) -> AbuseClassification:
-    clf = get_classifier()
-    result = clf(text, ABUSE_LABELS, multi_label=True)
-
+    result = classifier(text, ABUSE_LABELS, multi_label=True)
     scores = dict(zip(result["labels"], result["scores"]))
 
     return AbuseClassification(
@@ -146,11 +133,11 @@ def calculate_severity(cls: AbuseClassification) -> float:
     return round(min(base, 5.0), 2)
 
 # -------------------------
-# Escalation (Inference)
+# Escalation
 # -------------------------
 
 def lstm_escalation(sequence):
-    if not LSTM_AVAILABLE:
+    if not LSTM_AVAILABLE or not sequence:
         return {"escalation_probability": 0.5, "escalation_speed": 0.0}
 
     padded = [[0, 0, 0, 0, 0]] * max(0, MAX_SEQ_LEN - len(sequence)) + sequence[-MAX_SEQ_LEN:]
@@ -168,11 +155,16 @@ def lstm_escalation(sequence):
     }
 
 # -------------------------
-# Risk
+# Risk Scoring
 # -------------------------
 
 def calculate_risk(severity, esc_prob, esc_speed):
-    score = round(0.55 * severity + 0.30 * esc_prob + 0.15 * esc_speed, 2)
+    score = round(
+        0.55 * severity +
+        0.30 * esc_prob +
+        0.15 * esc_speed,
+        2
+    )
 
     if score < 1.2:
         return score, "LOW", "Continue monitoring"
@@ -180,6 +172,10 @@ def calculate_risk(severity, esc_prob, esc_speed):
         return score, "MEDIUM", "NGO counselor outreach recommended"
     else:
         return score, "HIGH", "Immediate safety planning required"
+
+# -------------------------
+# Flagging
+# -------------------------
 
 def should_flag(severity, esc_prob, history):
     if severity >= 2.5 and esc_prob >= 0.4:
@@ -191,80 +187,65 @@ def should_flag(severity, esc_prob, history):
     return False
 
 # -------------------------
-# API
+# API Endpoints
 # -------------------------
 
 @app.get("/")
 def root():
-    return {"status": "DV Detection API running"}
+    return {"status": "DV Detection API running (Render-ready)"}
 
 @app.post("/analyze", response_model=RiskAnalysis)
 async def analyze_case(case: CaseInput):
-    messages = sorted(case.messages, key=lambda m: m.timestamp)
-
-    timeline, severities = [], []
-
-    for msg in messages:
-        cls = classify_message(msg.text)
-        sev = calculate_severity(cls)
-        severities.append(sev)
-
-        timeline.append({
-            "timestamp": msg.timestamp,
-            "text": msg.text,
-            "classification": cls.dict(),
-            "severity": sev
-        })
-
-    sequence = [[
-        t["classification"]["control"],
-        t["classification"]["verbal"],
-        t["classification"]["threat"],
-        t["classification"]["physical"],
-        t["classification"]["severe_physical"]
-    ] for t in timeline]
-
-    esc = lstm_escalation(sequence)
-
-    score, level, action = calculate_risk(
-        severities[-1],
-        esc["escalation_probability"],
-        esc["escalation_speed"]
-    )
-
-    flag = should_flag(severities[-1], esc["escalation_probability"], severities)
-
-    return RiskAnalysis(
-        case_id=case.case_id,
-        severity_latest=severities[-1],
-        escalation_probability=esc["escalation_probability"],
-        escalation_speed=esc["escalation_speed"],
-        risk_score=score,
-        risk_level=level,
-        flag_for_review=flag,
-        recommended_action=action,
-        timeline=timeline
-    )
-
-@app.post("/speech-analyze")
-async def analyze_voice(file: UploadFile = File(...)):
-    temp_path = f"temp_{file.filename}"
-
     try:
-        with open(temp_path, "wb") as f:
-            f.write(await file.read())
+        messages = sorted(case.messages, key=lambda m: m.timestamp)
 
-        transcript = speech_to_text(temp_path)
-        if not transcript:
-            raise HTTPException(status_code=400, detail="Could not transcribe audio")
+        timeline = []
+        severities = []
 
-        case = CaseInput(
-            case_id="VOICE_CASE",
-            messages=[Message(timestamp=datetime.utcnow().isoformat(), text=transcript)]
+        for msg in messages:
+            cls = classify_message(msg.text)
+            sev = calculate_severity(cls)
+            severities.append(sev)
+
+            timeline.append({
+                "timestamp": msg.timestamp,
+                "text": msg.text,
+                "classification": cls.dict(),
+                "severity": sev
+            })
+
+        sequence = [
+            [
+                t["classification"]["control"],
+                t["classification"]["verbal"],
+                t["classification"]["threat"],
+                t["classification"]["physical"],
+                t["classification"]["severe_physical"]
+            ]
+            for t in timeline
+        ]
+
+        esc = lstm_escalation(sequence)
+
+        score, level, action = calculate_risk(
+            severities[-1],
+            esc["escalation_probability"],
+            esc["escalation_speed"]
         )
 
-        return {"transcript": transcript, "analysis": await analyze_case(case)}
+        flag = should_flag(severities[-1], esc["escalation_probability"], severities)
 
-    finally:
-        if os.path.exists(temp_path):
-            os.remove(temp_path)
+        return RiskAnalysis(
+            case_id=case.case_id,
+            severity_latest=severities[-1],
+            escalation_probability=esc["escalation_probability"],
+            escalation_speed=esc["escalation_speed"],
+            risk_score=score,
+            risk_level=level,
+            flag_for_review=flag,
+            recommended_action=action,
+            timeline=timeline
+        )
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
