@@ -1,0 +1,14 @@
+# Python
+backend/venv/
+__pycache__/
+*.pyc
+
+# Secrets
+backend/keys/*.json
+
+# Node
+node_modules/
+dist/
+
+# OS
+.DS_Store

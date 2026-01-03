@@ -1,0 +1,10 @@
+fastapi
+uvicorn
+numpy
+pydantic
+tensorflow-cpu
+transformers
+torch
+sentencepiece
+google-cloud-speech
+python-multipart
