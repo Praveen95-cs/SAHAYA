@@ -9,26 +9,14 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import List, Dict
-from datetime import datetime
 import numpy as np
-import os
 
 # -------------------------
-# Escalation Model (LSTM)
+# Escalation Model (DISABLED ON RENDER FREE)
 # -------------------------
 
-from tensorflow.keras.models import load_model
-
+LSTM_AVAILABLE = False
 MAX_SEQ_LEN = 10
-
-try:
-    ESCALATION_MODEL = load_model("models/escalation_lstm_model.h5")
-    LSTM_AVAILABLE = True
-    print("✅ LSTM escalation model loaded")
-except Exception as e:
-    ESCALATION_MODEL = None
-    LSTM_AVAILABLE = False
-    print("⚠️ LSTM model disabled:", e)
 
 # -------------------------
 # ML (Zero-shot Classification)
@@ -38,7 +26,7 @@ from transformers import pipeline
 
 classifier = pipeline(
     task="zero-shot-classification",
-    model="valhalla/distilbart-mnli-12-1",  # lighter & Render-safe
+    model="valhalla/distilbart-mnli-12-1",
     device=-1  # CPU only
 )
 
@@ -56,7 +44,7 @@ ABUSE_LABELS = [
 
 np.random.seed(42)
 
-app = FastAPI(title="DV Detection API (ML Enabled)")
+app = FastAPI(title="DV Detection API (Render-safe)")
 
 app.add_middleware(
     CORSMiddleware,
@@ -133,21 +121,21 @@ def calculate_severity(cls: AbuseClassification) -> float:
     return round(min(base, 5.0), 2)
 
 # -------------------------
-# Escalation
+# Escalation (Rule-based fallback)
 # -------------------------
 
 def lstm_escalation(sequence):
-    if not LSTM_AVAILABLE or not sequence:
-        return {"escalation_probability": 0.5, "escalation_speed": 0.0}
+    if not sequence or len(sequence) < 2:
+        return {
+            "escalation_probability": 0.4,
+            "escalation_speed": 0.0
+        }
 
-    padded = [[0, 0, 0, 0, 0]] * max(0, MAX_SEQ_LEN - len(sequence)) + sequence[-MAX_SEQ_LEN:]
-    X = np.array([padded])
+    last = sequence[-1][3]   # physical abuse
+    prev = sequence[-2][3]
 
-    prob = float(ESCALATION_MODEL.predict(X, verbose=0)[0][0])
-
-    speed = 0.0
-    if len(sequence) >= 2:
-        speed = abs(sequence[-1][3] - sequence[-2][3])
+    speed = abs(last - prev)
+    prob = min(0.9, 0.4 + speed)
 
     return {
         "escalation_probability": round(prob, 2),
@@ -192,7 +180,7 @@ def should_flag(severity, esc_prob, history):
 
 @app.get("/")
 def root():
-    return {"status": "DV Detection API running (Render-ready)"}
+    return {"status": "DV Detection API running (Render-safe)"}
 
 @app.post("/analyze", response_model=RiskAnalysis)
 async def analyze_case(case: CaseInput):
