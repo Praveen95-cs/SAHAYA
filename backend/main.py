@@ -112,7 +112,9 @@ class RiskAnalysis(BaseModel):
 # -------------------------
 
 def classify_message(text: str) -> AbuseClassification:
-    result = classifier(text, ABUSE_LABELS, multi_label=True)
+    clf = get_classifier()
+    result = clf(text, ABUSE_LABELS, multi_label=True)
+
     scores = dict(zip(result["labels"], result["scores"]))
 
     return AbuseClassification(
