@@ -7,3 +7,4 @@ python-multipart
 torch==2.1.0
 transformers==4.36.2
 sentencepiece
+python-3.11.9
