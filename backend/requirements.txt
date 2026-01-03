@@ -4,13 +4,6 @@ numpy
 pydantic
 python-multipart
 
-# ML
 torch==2.1.0
 transformers==4.36.2
 sentencepiece
-
-# LSTM
-tensorflow-cpu==2.13.0
-
-# Audio
-
