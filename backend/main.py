@@ -3,31 +3,57 @@ Domestic Violence Detection System - Backend API
 FastAPI (Local-first, Cloud-ready)
 Uses Transformer-based Zero-Shot Classification
 """
-# 🔥 FORCE GITHUB UPDATE – DO NOT REMOVE
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import List, Dict
+from datetime import datetime
+import numpy as np
+import os
+from tensorflow.keras.models import load_model
 import numpy as np
 
-# -------------------------
-# Escalation Model (DISABLED ON RENDER FREE)
-# -------------------------
-
-LSTM_AVAILABLE = False
+ESCALATION_MODEL = load_model("models/escalation_lstm_model.h5")
 MAX_SEQ_LEN = 10
 
+
+# Speech-to-text
+from speech import speech_to_text
+
+# ML
+from transformers import pipeline
+
 # -------------------------
-# ML (Zero-shot Classification)
+# App setup
 # -------------------------
 
-from transformers import pipeline
+np.random.seed(42)
+
+app = FastAPI(title="DV Detection API (ML Enabled)")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# -------------------------
+# 🔒 Firestore DISABLED (local-first mode)
+# -------------------------
+
+db = None  # cloud-ready, but disabled for hackathon/demo
+
+# -------------------------
+# Load ML Model ONCE
+# -------------------------
 
 classifier = pipeline(
     task="zero-shot-classification",
-    model="valhalla/distilbart-mnli-12-1",
-    device=-1  # CPU only
+    model="facebook/bart-large-mnli",
+    device=-1  # CPU (safe on Windows)
 )
 
 ABUSE_LABELS = [
@@ -37,22 +63,6 @@ ABUSE_LABELS = [
     "physical abuse",
     "severe physical abuse"
 ]
-
-# -------------------------
-# App setup
-# -------------------------
-
-np.random.seed(42)
-
-app = FastAPI(title="DV Detection API (Render-safe)")
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
 
 # -------------------------
 # Data Models
@@ -85,10 +95,14 @@ class RiskAnalysis(BaseModel):
     timeline: List[Dict]
 
 # -------------------------
-# Classification
+# ML-based Classification
 # -------------------------
 
 def classify_message(text: str) -> AbuseClassification:
+    """
+    Transformer-based zero-shot classification.
+    Handles unseen words & paraphrases.
+    """
     result = classifier(text, ABUSE_LABELS, multi_label=True)
     scores = dict(zip(result["labels"], result["scores"]))
 
@@ -101,7 +115,7 @@ def classify_message(text: str) -> AbuseClassification:
     )
 
 # -------------------------
-# Severity
+# Severity Calculation
 # -------------------------
 
 def calculate_severity(cls: AbuseClassification) -> float:
@@ -113,6 +127,7 @@ def calculate_severity(cls: AbuseClassification) -> float:
         cls.severe_physical * 8.0
     )
 
+    # Domain rules
     if cls.physical > 0.25:
         base += 1.5
     if cls.severe_physical > 0.15:
@@ -121,26 +136,24 @@ def calculate_severity(cls: AbuseClassification) -> float:
     return round(min(base, 5.0), 2)
 
 # -------------------------
-# Escalation (Rule-based fallback)
+# Escalation Detection
 # -------------------------
 
 def lstm_escalation(sequence):
-    if not sequence or len(sequence) < 2:
-        return {
-            "escalation_probability": 0.4,
-            "escalation_speed": 0.0
-        }
+    padded = [[0,0,0,0,0]] * max(0, MAX_SEQ_LEN - len(sequence)) + sequence[-MAX_SEQ_LEN:]
+    X = np.array([padded])
 
-    last = sequence[-1][3]   # physical abuse
-    prev = sequence[-2][3]
+    prob = float(ESCALATION_MODEL.predict(X, verbose=0)[0][0])
 
-    speed = abs(last - prev)
-    prob = min(0.9, 0.4 + speed)
+    speed = 0.0
+    if len(sequence) >= 2:
+        speed = abs(sequence[-1][3] - sequence[-2][3])  # physical abuse delta
 
     return {
         "escalation_probability": round(prob, 2),
         "escalation_speed": round(min(speed, 1.0), 2)
     }
+
 
 # -------------------------
 # Risk Scoring
@@ -162,7 +175,7 @@ def calculate_risk(severity, esc_prob, esc_speed):
         return score, "HIGH", "Immediate safety planning required"
 
 # -------------------------
-# Flagging
+# Flagging Logic
 # -------------------------
 
 def should_flag(severity, esc_prob, history):
@@ -180,7 +193,7 @@ def should_flag(severity, esc_prob, history):
 
 @app.get("/")
 def root():
-    return {"status": "DV Detection API running (Render-safe)"}
+    return {"status": "DV Detection API running (local-first, ML-enabled)"}
 
 @app.post("/analyze", response_model=RiskAnalysis)
 async def analyze_case(case: CaseInput):
@@ -203,15 +216,15 @@ async def analyze_case(case: CaseInput):
             })
 
         sequence = [
-            [
-                t["classification"]["control"],
-                t["classification"]["verbal"],
-                t["classification"]["threat"],
-                t["classification"]["physical"],
-                t["classification"]["severe_physical"]
-            ]
+                 [
+        t["classification"]["control"],
+        t["classification"]["verbal"],
+        t["classification"]["threat"],
+        t["classification"]["physical"],
+        t["classification"]["severe_physical"]
+             ]
             for t in timeline
-        ]
+                    ]
 
         esc = lstm_escalation(sequence)
 
@@ -237,3 +250,43 @@ async def analyze_case(case: CaseInput):
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/speech-analyze")
+async def analyze_voice(file: UploadFile = File(...)):
+    """
+    Audio → Speech-to-Text → ML DV Analysis
+    """
+    temp_path = f"temp_{file.filename}"
+
+    try:
+        with open(temp_path, "wb") as f:
+            f.write(await file.read())
+
+        transcript = speech_to_text(temp_path)
+
+        if not transcript:
+            raise HTTPException(status_code=400, detail="Could not transcribe audio")
+
+        case = CaseInput(
+            case_id="VOICE_CASE",
+            messages=[
+                Message(
+                    timestamp=datetime.utcnow().isoformat(),
+                    text=transcript
+                )
+            ]
+        )
+
+        analysis = await analyze_case(case)
+
+        return {
+            "transcript": transcript,
+            "analysis": analysis
+        }
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+    finally:
+        if os.path.exists(temp_path):
+            os.remove(temp_path)
