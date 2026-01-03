@@ -40,11 +40,18 @@ from speech import speech_to_text
 
 from transformers import pipeline
 
-classifier = pipeline(
-    task="zero-shot-classification",
-    model="facebook/bart-large-mnli",
-    device=-1
-)
+classifier = None
+
+def get_classifier():
+    global classifier
+    if classifier is None:
+        classifier = pipeline(
+            task="zero-shot-classification",
+            model="facebook/bart-large-mnli",
+            device=-1
+        )
+    return classifier
+
 
 ABUSE_LABELS = [
     "controlling behavior",
