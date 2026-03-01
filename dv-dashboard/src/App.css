@@ -1,0 +1,124 @@
+/* General layout polish new ver*/
+.page-shell {
+  position: relative;
+  min-height: 100vh;
+}
+
+.page-shell::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 0% 0%, rgba(59, 130, 246, 0.08), transparent 55%),
+    radial-gradient(circle at 100% 100%, rgba(147, 51, 234, 0.08), transparent 55%);
+  z-index: -1;
+}
+
+/* Home hero background with subtle glow */
+.home-hero {
+  position: relative;
+  overflow: hidden;
+}
+
+.home-hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 20% 0%, rgba(59, 130, 246, 0.15), transparent 55%),
+    radial-gradient(circle at 80% 100%, rgba(168, 85, 247, 0.18), transparent 55%);
+  opacity: 0.7;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.home-hero-content {
+  position: relative;
+  z-index: 1;
+}
+
+/* Elevated cards & hover effects */
+.card-elevated {
+  transition: transform 200ms ease, box-shadow 200ms ease, border-color 200ms ease,
+    background-color 200ms ease;
+}
+
+.card-elevated:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 18px 45px rgba(15, 23, 42, 0.08);
+  border-color: rgba(59, 130, 246, 0.25);
+  background-color: rgba(255, 255, 255, 0.96);
+}
+
+.card-soft {
+  border-radius: 1.25rem;
+}
+
+/* Primary call-to-action button styling */
+.btn-primary-glow {
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-primary-glow::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    circle at 10% 0%,
+    rgba(255, 255, 255, 0.35),
+    transparent 55%
+  );
+  opacity: 0;
+  transition: opacity 200ms ease;
+}
+
+.btn-primary-glow:hover::before {
+  opacity: 1;
+}
+
+.btn-primary-glow:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 18px 45px rgba(37, 99, 235, 0.35);
+}
+
+.btn-primary-glow,
+.btn-soft {
+  transition: transform 180ms ease, box-shadow 180ms ease, background-color 180ms ease,
+    color 180ms ease;
+}
+
+.btn-soft:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 14px 30px rgba(15, 23, 42, 0.15);
+}
+
+/* Subtle fade-in for main sections */
+.fade-in-up {
+  animation: fadeInUp 420ms ease-out;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Dashboard chips for abuse types */
+.chip-pill {
+  border-radius: 999px;
+  backdrop-filter: blur(8px);
+}
+
+/* Utility to make header subtly translucent on scroll backgrounds */
+.header-glass {
+  backdrop-filter: blur(14px);
+  background-color: rgba(255, 255, 255, 0.92);
+}
+

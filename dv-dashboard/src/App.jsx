@@ -1,20 +1,42 @@
 import React, { useState, useMemo, memo } from 'react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, BarChart, Bar } from 'recharts';
-import { AlertTriangle, TrendingUp, Shield, Clock, HelpCircle, Phone, Mail, Info } from 'lucide-react';
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+} from 'recharts';
+import {
+  AlertTriangle,
+  TrendingUp,
+  Shield,
+  Clock,
+  HelpCircle,
+  Phone,
+  Mail,
+  Info,
+} from 'lucide-react';
+import './App.css';
 
 // Header Component with Logo
 const AppHeader = ({ onHome, showBack = false }) => {
   return (
-    <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
+    <header className="bg-white/95 header-glass border-b border-gray-200 sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-6 py-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
             {showBack && (
               <button
                 onClick={onHome}
-                className="text-gray-600 hover:text-gray-800 transition-colors"
+                className="inline-flex items-center gap-1 text-gray-600 hover:text-gray-900 text-sm font-medium px-3 py-1.5 rounded-full border border-gray-200 bg-white/80 hover:bg-gray-50 transition-colors"
               >
-                ← Back
+                <span className="text-lg leading-none">←</span>
+                <span>Back to home</span>
               </button>
             )}
             <div className="flex items-center gap-3">
@@ -27,14 +49,21 @@ const AppHeader = ({ onHome, showBack = false }) => {
                 }}
               />
               <div>
-                <h1 className="text-2xl font-light text-gray-800">SAHAYA</h1>
-                <p className="text-xs text-gray-500">Support • Protection • Aid</p>
+                <h1 className="text-2xl font-semibold tracking-tight text-gray-900">
+                  SAHAYA
+                </h1>
+                <p className="text-xs text-gray-500">
+                  Support • Protection • Aid
+                </p>
               </div>
             </div>
           </div>
           <div className="flex items-center gap-2 text-sm text-gray-600">
             <Phone size={16} />
-            <span className="hidden sm:inline">24/7 Helpline: 181</span>
+            <span className="hidden sm:inline font-medium">
+              24/7 Helpline:{' '}
+              <span className="text-blue-600 tracking-wide">181</span>
+            </span>
           </div>
         </div>
       </div>
@@ -45,26 +74,32 @@ const AppHeader = ({ onHome, showBack = false }) => {
 // Home Page Component
 const HomePage = ({ onNavigate }) => {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 home-hero page-shell">
       <AppHeader onHome={() => {}} showBack={false} />
-      
-      <div className="flex items-center justify-center px-4 py-16">
-        <div className="text-center max-w-3xl">
+
+      <div className="flex items-center justify-center px-4 py-16 home-hero-content">
+        <div className="text-center max-w-3xl fade-in-up">
           {/* Logo */}
           <div className="mb-8 flex justify-center">
-                  <img
-          src="/sahaya-logo.png"
-          alt="SAHAYA Logo"
-          className="w-32 h-32"
-          style={{ borderRadius: '50%' }}
-          onError={(e) => {
-            e.target.style.display = 'none';
-          }}
-        />
+            <div className="relative inline-flex items-center justify-center">
+              <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-blue-500/20 to-purple-500/10 blur-2xl" />
+              <img
+                src="/sahaya-logo.png"
+                alt="SAHAYA Logo"
+                className="relative w-32 h-32 rounded-full shadow-xl ring-4 ring-white/70 object-contain"
+                onError={(e) => {
+                  e.target.style.display = 'none';
+                }}
+              />
+            </div>
           </div>
-          
-          <h1 className="text-6xl font-light text-gray-800 mb-4">SAHAYA</h1>
-          <p className="text-xl text-gray-600 mb-3">Support • Protection • Aid</p>
+
+          <h1 className="text-5xl sm:text-6xl font-semibold tracking-tight text-slate-900 mb-4">
+            SAHAYA
+          </h1>
+          <p className="text-lg sm:text-xl text-slate-600 mb-3">
+            Support • Protection • Aid
+          </p>
           <p className="text-base text-gray-500 mb-2">
             Domestic Violence Detection & Risk Assessment System
           </p>
@@ -74,22 +109,22 @@ const HomePage = ({ onNavigate }) => {
           </p>
           
           {/* Action Buttons */}
-          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
+          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12 mt-4">
             <button
               onClick={() => onNavigate('incremental')}
-              className="px-8 py-4 bg-blue-600 text-white rounded-full text-lg font-medium hover:bg-blue-700 transition-all shadow-md hover:shadow-lg"
+              className="px-8 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-full text-lg font-semibold btn-primary-glow"
             >
               Start New Case Analysis
             </button>
             <button
               onClick={() => onNavigate('text')}
-              className="px-8 py-4 bg-gray-600 text-white rounded-full text-lg font-medium hover:bg-gray-700 transition-all shadow-md hover:shadow-lg"
+              className="px-8 py-4 bg-slate-800 text-white rounded-full text-lg font-medium btn-soft"
             >
               Batch Analysis
             </button>
             <button
               onClick={() => onNavigate('audio')}
-              className="px-8 py-4 bg-purple-600 text-white rounded-full text-lg font-medium hover:bg-purple-700 transition-all shadow-md hover:shadow-lg"
+              className="px-8 py-4 bg-purple-600 text-white rounded-full text-lg font-medium btn-soft"
             >
               Analyze Audio
             </button>
@@ -97,21 +132,21 @@ const HomePage = ({ onNavigate }) => {
 
           {/* Information Cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-16">
-            <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-100">
+            <div className="bg-white/90 card-soft card-elevated p-6 shadow-sm border border-gray-100">
               <Shield className="text-blue-600 mb-3 mx-auto" size={32} />
               <h3 className="font-semibold text-gray-800 mb-2">Risk Assessment</h3>
               <p className="text-sm text-gray-600">
                 AI-powered analysis identifies risk levels and escalation patterns to help prioritize cases.
               </p>
             </div>
-            <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-100">
+            <div className="bg-white/90 card-soft card-elevated p-6 shadow-sm border border-gray-100">
               <TrendingUp className="text-orange-600 mb-3 mx-auto" size={32} />
               <h3 className="font-semibold text-gray-800 mb-2">Early Detection</h3>
               <p className="text-sm text-gray-600">
                 Continuous monitoring detects warning signs before situations escalate to critical levels.
               </p>
             </div>
-            <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-100">
+            <div className="bg-white/90 card-soft card-elevated p-6 shadow-sm border border-gray-100">
               <Clock className="text-green-600 mb-3 mx-auto" size={32} />
               <h3 className="font-semibold text-gray-800 mb-2">Timely Intervention</h3>
               <p className="text-sm text-gray-600">
@@ -121,7 +156,7 @@ const HomePage = ({ onNavigate }) => {
           </div>
 
           {/* Help Section */}
-          <div className="mt-12 bg-blue-50 rounded-lg p-6 border border-blue-100">
+          <div className="mt-12 bg-blue-50/80 card-soft p-6 border border-blue-100 shadow-sm">
             <div className="flex items-start gap-3">
               <Info className="text-blue-600 flex-shrink-0 mt-1" size={20} />
               <div className="text-left">
@@ -216,21 +251,21 @@ const IncrementalTextAnalysis = ({ onBack, onResult }) => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 page-shell">
       <AppHeader onHome={onBack} showBack={true} />
       <div className="max-w-6xl mx-auto px-4 py-8">
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Left Column - Message Input */}
           <div className="lg:col-span-1">
-            <div className="bg-white rounded-lg p-6 shadow-sm sticky top-20 border border-gray-100">
+            <div className="bg-white/95 card-soft p-6 shadow-sm sticky top-24 border border-gray-100 fade-in-up">
               <div className="flex items-center gap-2 mb-4">
                 <Shield className="text-blue-600" size={24} />
                 <h2 className="text-2xl font-light text-gray-800">New Case</h2>
               </div>
               
               {/* Help Tooltip */}
-              <div className="mb-4 bg-blue-50 border border-blue-100 rounded-lg p-3">
+              <div className="mb-4 bg-blue-50/80 border border-blue-100 rounded-lg p-3">
                 <div className="flex items-start gap-2">
                   <HelpCircle className="text-blue-600 flex-shrink-0 mt-0.5" size={16} />
                   <p className="text-xs text-gray-700">
@@ -247,7 +282,7 @@ const IncrementalTextAnalysis = ({ onBack, onResult }) => {
                   type="text"
                   value={caseId}
                   onChange={(e) => setCaseId(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-400 text-sm"
                   placeholder="Enter case ID"
                   disabled={messageHistory.length > 0}
                 />
@@ -262,7 +297,7 @@ const IncrementalTextAnalysis = ({ onBack, onResult }) => {
                     value={currentMessage}
                     onChange={(e) => setCurrentMessage(e.target.value)}
                     rows={4}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-400 text-sm"
                     placeholder="Enter the conversation message..."
                     required
                   />
@@ -277,7 +312,7 @@ const IncrementalTextAnalysis = ({ onBack, onResult }) => {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full px-6 py-3 bg-blue-600 text-white rounded-lg text-lg font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  className="w-full px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg text-base font-semibold btn-primary-glow disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {loading ? 'Analyzing...' : 'Add & Analyze'}
                 </button>
@@ -287,13 +322,13 @@ const IncrementalTextAnalysis = ({ onBack, onResult }) => {
                 <div className="mt-6 space-y-2">
                   <button
                     onClick={handleViewDashboard}
-                    className="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                    className="w-full px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium btn-soft"
                   >
                     View Full Dashboard
                   </button>
                   <button
                     onClick={handleReset}
-                    className="w-full px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
+                    className="w-full px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-200 transition-colors"
                   >
                     Reset Case
                   </button>
@@ -313,9 +348,11 @@ const IncrementalTextAnalysis = ({ onBack, onResult }) => {
             {currentAnalysis ? (
               <QuickAnalysisView analysis={currentAnalysis} />
             ) : (
-              <div className="bg-white rounded-lg p-12 shadow-sm text-center">
-                <Shield size={48} className="mx-auto mb-4 text-gray-400" />
-                <p className="text-gray-600">Add your first message to begin analysis</p>
+              <div className="bg-white/95 card-soft p-12 shadow-sm text-center border border-dashed border-slate-200 fade-in-up">
+                <Shield size={48} className="mx-auto mb-4 text-blue-400" />
+                <p className="text-gray-600">
+                  Add your first message to begin analysis
+                </p>
               </div>
             )}
           </div>
@@ -393,10 +430,10 @@ const QuickAnalysisView = memo(({ analysis }) => {
   );
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 fade-in-up">
       {/* Risk Alert */}
       {analysis.flag_for_review && (
-        <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded-r-lg">
+        <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded-r-lg shadow-sm">
           <div className="flex items-start gap-3">
             <AlertTriangle className="text-red-500 flex-shrink-0" size={24} />
           <div>
@@ -409,25 +446,25 @@ const QuickAnalysisView = memo(({ analysis }) => {
 
       {/* Key Metrics */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="bg-white rounded-lg shadow-sm p-4">
+        <div className="bg-white/95 rounded-2xl shadow-sm p-4 border border-slate-100">
           <div className="text-sm text-gray-600 mb-1">Risk Level</div>
           <div className={`text-2xl font-bold ${getRiskColor(analysis.risk_level).split(' ')[0]}`}>
             {analysis.risk_level}
           </div>
         </div>
-        <div className="bg-white rounded-lg shadow-sm p-4">
+        <div className="bg-white/95 rounded-2xl shadow-sm p-4 border border-slate-100">
           <div className="text-sm text-gray-600 mb-1">Severity</div>
           <div className="text-2xl font-bold text-gray-800">
             {analysis.severity_latest.toFixed(1)}/5
           </div>
         </div>
-        <div className="bg-white rounded-lg shadow-sm p-4">
+        <div className="bg-white/95 rounded-2xl shadow-sm p-4 border border-slate-100">
           <div className="text-sm text-gray-600 mb-1">Escalation Risk</div>
           <div className="text-2xl font-bold text-gray-800">
             {(analysis.escalation_probability * 100).toFixed(0)}%
           </div>
         </div>
-        <div className="bg-white rounded-lg shadow-sm p-4">
+        <div className="bg-white/95 rounded-2xl shadow-sm p-4 border border-slate-100">
           <div className="text-sm text-gray-600 mb-1">Messages</div>
           <div className="text-2xl font-bold text-gray-800">
             {analysis.timeline.length}
@@ -437,18 +474,18 @@ const QuickAnalysisView = memo(({ analysis }) => {
 
       {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white rounded-lg shadow-sm p-6">
+        <div className="bg-white/95 rounded-2xl shadow-sm p-6 border border-slate-100">
           <h3 className="text-lg font-semibold text-gray-800 mb-4">Severity Trend</h3>
           <TimelineChart timeline={analysis.timeline} />
         </div>
-        <div className="bg-white rounded-lg shadow-sm p-6">
+        <div className="bg-white/95 rounded-2xl shadow-sm p-6 border border-slate-100">
           <h3 className="text-lg font-semibold text-gray-800 mb-4">Latest Message Analysis</h3>
           {latestClassification && <AbuseBreakdown classification={latestClassification} />}
         </div>
       </div>
 
       {/* Recommended Action */}
-      <div className={`bg-white rounded-lg shadow-sm p-6 border-l-4 ${
+      <div className={`bg-white/95 rounded-2xl shadow-sm p-6 border-l-4 ${
         analysis.risk_level === 'HIGH' ? 'border-red-500' :
         analysis.risk_level === 'MEDIUM' ? 'border-yellow-500' :
         'border-green-500'
@@ -464,12 +501,12 @@ const QuickAnalysisView = memo(({ analysis }) => {
       </div>
 
       {/* Message Timeline */}
-      <div className="bg-white rounded-lg shadow-sm p-6">
+      <div className="bg-white/95 rounded-2xl shadow-sm p-6 border border-slate-100">
         <h3 className="text-lg font-semibold text-gray-800 mb-4">Message Timeline</h3>
         <div className="space-y-3">
           {analysis.timeline.map((item, index) => (
-            <div 
-              key={index} 
+            <div
+              key={index}
               className={`border-l-4 pl-4 py-3 ${
                 item.severity > 3.5 ? 'border-red-500 bg-red-50' : 
                 item.severity > 2 ? 'border-yellow-500 bg-yellow-50' : 
@@ -567,12 +604,12 @@ const DashboardView = ({ result, onBack, onAddMore }) => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 page-shell">
       {/* Header */}
       <AppHeader onHome={onBack} showBack={true} />
       
       {/* Dashboard Header Bar */}
-      <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white">
+      <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-sm">
         <div className="max-w-7xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div>
@@ -592,7 +629,7 @@ const DashboardView = ({ result, onBack, onAddMore }) => {
       <div className="max-w-7xl mx-auto px-6 py-6">
         {/* Risk Alert Banner */}
         {result.flag_for_review && (
-          <div className="bg-red-50 border-l-4 border-red-500 p-6 mb-6 rounded-r-lg shadow-md">
+          <div className="bg-red-50 border-l-4 border-red-500 p-6 mb-6 rounded-r-lg shadow-md fade-in-up">
             <div className="flex items-start gap-4">
               <AlertTriangle className="text-red-500 flex-shrink-0" size={32} />
               <div className="flex-1">
@@ -605,7 +642,7 @@ const DashboardView = ({ result, onBack, onAddMore }) => {
 
         {/* Key Metrics */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
-          <div className="bg-white rounded-lg shadow p-6">
+          <div className="bg-white/95 rounded-2xl shadow p-6 border border-slate-100">
             <div className="flex items-center justify-between mb-2">
               <span className="text-gray-600 text-sm">Risk Level</span>
               <TrendingUp className="text-red-500" size={20} />
@@ -619,7 +656,7 @@ const DashboardView = ({ result, onBack, onAddMore }) => {
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow p-6">
+          <div className="bg-white/95 rounded-2xl shadow p-6 border border-slate-100">
             <div className="flex items-center justify-between mb-2">
               <span className="text-gray-600 text-sm">Escalation Risk</span>
               <AlertTriangle className="text-orange-500" size={20} />
@@ -632,7 +669,7 @@ const DashboardView = ({ result, onBack, onAddMore }) => {
             </p>
             </div>
 
-          <div className="bg-white rounded-lg shadow p-6">
+          <div className="bg-white/95 rounded-2xl shadow p-6 border border-slate-100">
             <div className="flex items-center justify-between mb-2">
               <span className="text-gray-600 text-sm">Current Severity</span>
               <Shield className="text-red-500" size={20} />
@@ -643,7 +680,7 @@ const DashboardView = ({ result, onBack, onAddMore }) => {
             <p className="text-sm text-gray-600 mt-2">Latest message severity</p>
           </div>
 
-          <div className="bg-white rounded-lg shadow p-6">
+          <div className="bg-white/95 rounded-2xl shadow p-6 border border-slate-100">
             <div className="flex items-center justify-between mb-2">
               <span className="text-gray-600 text-sm">Timeline</span>
               <Clock className="text-blue-500" size={20} />
@@ -660,18 +697,18 @@ const DashboardView = ({ result, onBack, onAddMore }) => {
           {/* Timeline Section */}
           <div className="lg:col-span-2 space-y-6">
             {/* Severity Trend */}
-            <div className="bg-white rounded-lg shadow p-6">
+            <div className="bg-white/95 rounded-2xl shadow p-6 border border-slate-100">
               <h3 className="text-lg font-bold text-gray-800 mb-4">Abuse Severity Trend</h3>
               <TimelineChart timeline={result.timeline} />
             </div>
 
             {/* Message Timeline */}
-            <div className="bg-white rounded-lg shadow p-6">
+            <div className="bg-white/95 rounded-2xl shadow p-6 border border-slate-100">
               <h3 className="text-lg font-bold text-gray-800 mb-4">Message Timeline</h3>
               <div className="space-y-4">
                 {result.timeline.map((msg, idx) => (
-                  <div 
-                    key={idx} 
+                  <div
+                    key={idx}
                     className={`border-l-4 pl-4 py-3 ${
                       msg.severity > 3.5 ? 'border-red-500 bg-red-50' : 
                       msg.severity > 2 ? 'border-yellow-500 bg-yellow-50' : 
@@ -699,8 +736,12 @@ const DashboardView = ({ result, onBack, onAddMore }) => {
                     <div className="flex gap-2 mt-3 flex-wrap">
                       {Object.entries(msg.classification).map(([type, prob]) => 
                         prob > 0.3 && (
-                          <span key={type} 
-                                className={`px-2 py-1 rounded text-xs font-semibold text-white ${getAbuseTypeColor(type)}`}>
+                          <span
+                            key={type}
+                            className={`px-2 py-1 chip-pill text-xs font-semibold text-white ${getAbuseTypeColor(
+                              type
+                            )}`}
+                          >
                             {type.replace('_', ' ')}: {(prob * 100).toFixed(0)}%
                           </span>
                         )
@@ -848,18 +889,18 @@ const AnalyzeTextPage = ({ onBack, onResult }) => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 page-shell">
       <AppHeader onHome={onBack} showBack={true} />
       <div className="flex items-center justify-center px-4 py-12">
         <div className="w-full max-w-2xl">
-          <div className="bg-white rounded-lg p-8 shadow-sm border border-gray-100">
+          <div className="bg-white/95 card-soft p-8 shadow-sm border border-gray-100 fade-in-up">
             <div className="flex items-center gap-3 mb-6">
               <Shield className="text-blue-600" size={32} />
               <h2 className="text-3xl font-light text-gray-800">Batch Text Analysis</h2>
             </div>
             
             {/* Help Section */}
-            <div className="mb-6 bg-blue-50 border border-blue-100 rounded-lg p-4">
+            <div className="mb-6 bg-blue-50/80 border border-blue-100 rounded-lg p-4">
               <div className="flex items-start gap-2">
                 <Info className="text-blue-600 flex-shrink-0 mt-0.5" size={18} />
                 <div className="text-sm text-gray-700">
@@ -882,7 +923,7 @@ const AnalyzeTextPage = ({ onBack, onResult }) => {
                 type="text"
                 value={caseId}
                 onChange={(e) => setCaseId(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-400 text-sm"
                 placeholder="Enter case ID or leave blank"
               />
             </div>
@@ -895,7 +936,7 @@ const AnalyzeTextPage = ({ onBack, onResult }) => {
                 value={messages}
                 onChange={(e) => setMessages(e.target.value)}
                 rows={12}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm"
+                className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-400 font-mono text-sm"
                 placeholder={`Format 1 (JSON array):
 [
   {"timestamp": "2024-01-01T10:00:00Z", "text": "First message"},
@@ -922,7 +963,7 @@ Second message`}
             <button
               type="submit"
               disabled={loading}
-              className="w-full px-6 py-3 bg-blue-600 text-white rounded-full text-lg font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="w-full px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-full text-lg font-semibold btn-primary-glow disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? 'Analyzing...' : 'Submit for Analysis'}
             </button>
@@ -979,18 +1020,18 @@ const AnalyzeAudioPage = ({ onBack, onResult }) => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 page-shell">
       <AppHeader onHome={onBack} showBack={true} />
       <div className="flex items-center justify-center px-4 py-12">
         <div className="w-full max-w-2xl">
-          <div className="bg-white rounded-lg p-8 shadow-sm border border-gray-100">
+          <div className="bg-white/95 card-soft p-8 shadow-sm border border-gray-100 fade-in-up">
             <div className="flex items-center gap-3 mb-6">
               <Shield className="text-purple-600" size={32} />
               <h2 className="text-3xl font-light text-gray-800">Audio Analysis</h2>
             </div>
             
             {/* Help Section */}
-            <div className="mb-6 bg-purple-50 border border-purple-100 rounded-lg p-4">
+            <div className="mb-6 bg-purple-50/80 border border-purple-100 rounded-lg p-4">
               <div className="flex items-start gap-2">
                 <Info className="text-purple-600 flex-shrink-0 mt-0.5" size={18} />
                 <div className="text-sm text-gray-700">
@@ -1009,7 +1050,7 @@ const AnalyzeAudioPage = ({ onBack, onResult }) => {
                 type="file"
                 accept="audio/*"
                 onChange={handleFileChange}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-400 text-sm"
               />
               {file && (
                 <p className="mt-2 text-sm text-gray-600">
@@ -1027,7 +1068,7 @@ const AnalyzeAudioPage = ({ onBack, onResult }) => {
             <button
               type="submit"
               disabled={loading || !file}
-              className="w-full px-6 py-3 bg-purple-600 text-white rounded-full text-lg font-medium hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="w-full px-6 py-3 bg-purple-600 text-white rounded-full text-lg font-semibold btn-primary-glow disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? 'Analyzing...' : 'Submit for Analysis'}
             </button>

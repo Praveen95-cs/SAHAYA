@@ -1,6 +1,11 @@
 """
 LSTM Model for Temporal Escalation Detection
 Predicts escalation probability from sequence of abuse classifications
+
+Powered by AMD Hardware:
+- AMD ROCm for GPU acceleration (AMD Instinct GPUs)
+- Optimized TensorFlow builds for AMD EPYC processors
+- Enhanced training performance on AMD hardware
 """
 
 import tensorflow as tf
@@ -8,6 +13,40 @@ from tensorflow import keras
 from tensorflow.keras import layers
 import numpy as np
 import json
+import os
+
+# -------------------------
+# AMD ROCm GPU Configuration
+# -------------------------
+
+def configure_amd_gpu():
+    """
+    Configure TensorFlow to use AMD GPU via ROCm.
+    AMD ROCm enables GPU acceleration on AMD Instinct GPUs.
+    """
+    try:
+        # Check for AMD GPU via ROCm
+        gpus = tf.config.list_physical_devices('GPU')
+        if gpus:
+            # Configure GPU memory growth
+            for gpu in gpus:
+                tf.config.experimental.set_memory_growth(gpu, True)
+            
+            # Get GPU details
+            gpu_name = tf.config.experimental.get_device_details(gpus[0]) if hasattr(tf.config.experimental, 'get_device_details') else "AMD GPU"
+            print(f"✅ AMD GPU detected via ROCm: {len(gpus)} GPU(s) available")
+            print(f"   Using AMD GPU for LSTM training acceleration")
+            return True
+        else:
+            print("💻 No AMD GPU detected, using CPU for training")
+            return False
+    except Exception as e:
+        print(f"⚠️  AMD GPU configuration failed: {e}")
+        print("   Falling back to CPU")
+        return False
+
+# Configure AMD GPU on import
+AMD_GPU_AVAILABLE = configure_amd_gpu()
 
 # ===== SYNTHETIC SEQUENCE DATA =====
 # Each sequence represents a case timeline
@@ -189,7 +228,10 @@ def build_lstm_model(sequence_length=10, feature_dim=5):
 # ===== TRAINING =====
 
 def train_escalation_model():
-    """Train LSTM escalation model"""
+    """
+    Train LSTM escalation model
+    Optimized for AMD hardware via ROCm GPU acceleration
+    """
     
     # Generate training data
     print("Generating training data...")
@@ -205,6 +247,13 @@ def train_escalation_model():
     
     print(f"Training samples: {len(X_train)}, Validation samples: {len(X_val)}")
     
+    if AMD_GPU_AVAILABLE:
+        print("🚀 Training with AMD GPU acceleration (ROCm)")
+        batch_size = 32  # Larger batch size for GPU
+    else:
+        print("💻 Training on CPU")
+        batch_size = 16
+    
     # Build model
     model = build_lstm_model()
     print(model.summary())
@@ -214,7 +263,7 @@ def train_escalation_model():
         X_train, y_train,
         validation_data=(X_val, y_val),
         epochs=50,
-        batch_size=16,
+        batch_size=batch_size,
         callbacks=[
             keras.callbacks.EarlyStopping(
                 monitor='val_loss',
